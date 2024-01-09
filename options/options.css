@@ -16,7 +16,18 @@ body {
     margin: 10px;
   }
   
-  #time-option {
+  #work-option {
+    color: black;
+    background-color: gray;
+    border: none;
+    outline: none;
+    border-radius: 4px;
+    padding: 4px;
+    width: 180px;
+    margin-left: 10px;
+  }
+
+  #break-option {
     color: black;
     background-color: gray;
     border: none;

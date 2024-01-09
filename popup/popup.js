@@ -1,22 +1,71 @@
 let tasks = [];
 
-function updateTime() {
-  chrome.storage.local.get(["timer", "timeOption"], (res) => {
+// function updateTime() {
+//   console.log("Inside updateTime function");
+//   chrome.storage.local.get(["timer", "workTimeOption"], (res) => {
+//     const time = document.getElementById("time");
+//     const minutes = `${
+//       res.workTimeOption - Math.ceil(res.timer / 60)
+//     }`.padStart(2, "0");
+//     let seconds = "00";
+//     if (res.timer % 60 != 0) {
+//       seconds = `${60 - (res.timer % 60)}`.padStart(2, "0");
+//     }
+//     time.textContent = `${minutes}:${seconds}`;
+//   });
+// }
+
+// updateTime();
+// setInterval(updateTime, 1000);
+
+function workTimer() {
+  console.log("Inside workTimer function");
+  chrome.storage.local.get(["timer", "workTimeOption"], (res) => {
     const time = document.getElementById("time");
-    const minutes = `${res.timeOption - Math.ceil(res.timer / 60)}`.padStart(
-      2,
-      "0"
-    );
+    const minutes = `${
+      res.workTimeOption - Math.ceil(res.timer / 60)
+    }`.padStart(2, "0");
     let seconds = "00";
     if (res.timer % 60 != 0) {
       seconds = `${60 - (res.timer % 60)}`.padStart(2, "0");
     }
     time.textContent = `${minutes}:${seconds}`;
+    console.log(res.timer, res.workTimeOption);
+    if (res.timer === res.workTimeOption * 60) {
+      // console.log(res);
+      // alert("stop");
+      clearInterval(timerInterval);
+      timerBreakInterval = setInterval(breakTimer, 1000);
+      breakTimer();
+    }
   });
 }
 
-updateTime();
-setInterval(updateTime, 1000);
+function breakTimer() {
+  console.log("Inside breakTimer function");
+  chrome.storage.local.get(["timer", "breakTimeOption"], (res) => {
+    const time = document.getElementById("time");
+    const minutes = `${
+      res.breakTimeOption - Math.ceil(res.timer / 60)
+    }`.padStart(2, "0");
+    let seconds = "00";
+    if (res.timer % 60 != 0) {
+      seconds = `${60 - (res.timer % 60)}`.padStart(2, "0");
+    }
+    time.textContent = `${minutes}:${seconds}`;
+
+    if (res.timer === res.breakTimeOption * 60) {
+      clearInterval(timerBreakInterval);
+      timerInterval = setInterval(workTimer, 1000);
+      workTimer();
+    }
+  });
+}
+
+workTimer();
+let timerInterval = setInterval(workTimer, 1000);
+let timerBreakInterval;
+// const timerBreakInterval = setInterval(breakTimer, 1000);
 
 const startTimerBtn = document.getElementById("start-timer-btn");
 startTimerBtn.addEventListener("click", () => {
