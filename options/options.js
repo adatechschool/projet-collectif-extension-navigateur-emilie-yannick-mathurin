@@ -16,10 +16,14 @@ breakTimeOption.addEventListener("change", (event) => {
 
 const workSaveBtn = document.getElementById("work-save-btn");
 workSaveBtn.addEventListener("click", () => {
+  console.log(workTimeOption.value);
   chrome.storage.local.set({
     timer: 0,
-    workTimer: workTimeOption.value,
+    workTimer: parseInt(workTimeOption.value),
     isRunning: false,
+  });
+  chrome.storage.local.get(["workTimer"]).then((res) => {
+    console.log(res);
   });
 });
 
@@ -35,6 +39,7 @@ breakSaveBtn.addEventListener("click", () => {
 chrome.storage.local.get(["workTimer"], (res) => {
   workTimeOption.value = res.workTimer;
   console.log("Initial workTimer: ", res.workTimer);
+  console.log(typeof res.workTimer);
 });
 
 chrome.storage.local.get(["breakTimer"], (res) => {
