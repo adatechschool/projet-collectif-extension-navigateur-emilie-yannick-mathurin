@@ -35,7 +35,9 @@ function workTimer() {
       // console.log(res);
       // alert("stop");
       clearInterval(timerInterval);
-      timerBreakInterval = setInterval(breakTimer, 1000);
+      if (!timerBreakInterval) {
+        timerBreakInterval = setInterval(breakTimer, 1000);
+      }
       breakTimer();
     }
   });
@@ -64,7 +66,7 @@ function breakTimer() {
 
 workTimer();
 let timerInterval = setInterval(workTimer, 1000);
-let timerBreakInterval;
+let timerBreakInterval = null;
 // const timerBreakInterval = setInterval(breakTimer, 1000);
 
 const startTimerBtn = document.getElementById("start-timer-btn");
