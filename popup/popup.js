@@ -160,3 +160,70 @@ function renderTasks() {
     renderTask(taskNum);
   });
 }
+
+// // Define constants for the DOM elements representing the timers
+// const workTimerEl = document.getElementById("work-timer");
+// const breakTimerEl = document.getElementById("break-timer");
+
+// // Function to convert a duration in minutes to seconds
+// function minutesToSeconds(minutes) {
+//   return minutes * 60;
+// }
+
+// // Initialize variables to keep track of the remaining durations of the work and break timers
+// let workDuration = 0;
+// let breakDuration = 0;
+
+// // Load the work and break times from Chrome storage
+// chrome.storage.local.get(
+//   ["workTime", "breakTime"],
+//   ({ workTime, breakTime }) => {
+//     // Convert the work and break times to seconds
+//     workDuration = minutesToSeconds(workTime);
+//     breakDuration = minutesToSeconds(breakTime);
+
+//     // Start the work timer
+//     updateTimers();
+//   }
+// );
+
+// // Function to update the displayed timers
+// function updateTimers() {
+//   // Check which timer is currently running
+//   if (workDuration > 0) {
+//     // Work timer is running
+//     workTimerEl.textContent = formatTimeString(workDuration);
+//     workDuration--;
+//   } else if (breakDuration > 0) {
+//     // Break timer is running
+//     breakTimerEl.textContent = formatTimeString(breakDuration);
+//     breakDuration--;
+//   } else {
+//     // Both timers have completed
+//     console.log("All timers have completed.");
+//     clearInterval(updateTimerIntervalId);
+//     return;
+//   }
+
+//   // Schedule the next update
+//   setTimeout(() => {
+//     updateTimers();
+//   }, 1000);
+// }
+
+// // Interval ID for updating the timers
+// let updateTimerIntervalId = null;
+
+// // Set up the interval for updating the timers
+// updateTimerIntervalId = setInterval(() => {
+//   updateTimers();
+// }, 1000);
+
+// // Utility function to format a duration in seconds as a string in MM:SS format
+// function formatTimeString(seconds) {
+//   const minutes = Math.floor(seconds / 60);
+//   const secondsLeft = seconds % 60;
+//   return `${minutes}:${
+//     secondsLeft < 10 ? "0" + String(secondsLeft) : String(secondsLeft)
+//   }`;
+// }
