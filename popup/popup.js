@@ -1,91 +1,20 @@
 let tasks = [];
 
-// function updateTime() {
-//   console.log("Inside updateTime function");
-//   chrome.storage.local.get(["timer", "workTimeOption"], (res) => {
-//     const time = document.getElementById("time");
-//     const minutes = `${
-//       res.workTimeOption - Math.ceil(res.timer / 60)
-//     }`.padStart(2, "0");
-//     let seconds = "00";
-//     if (res.timer % 60 != 0) {
-//       seconds = `${60 - (res.timer % 60)}`.padStart(2, "0");
-//     }
-//     time.textContent = `${minutes}:${seconds}`;
-//   });
-// }
-
-// updateTime();
-// setInterval(updateTime, 1000);
-
-// function workTimer() {
-//   console.log("Inside workTimer function");
-//   chrome.storage.local.get(["timer", "workTimer"], (res) => {
-//     const time = document.getElementById("time");
-//     const minutes = `${res.workTimer - Math.ceil(res.timer / 60)}`.padStart(
-//       2,
-//       "0"
-//     );
-//     let seconds = "00";
-//     if (res.timer % 60 != 0) {
-//       seconds = `${60 - (res.timer % 60)}`.padStart(2, "0");
-//     }
-//     time.textContent = `${minutes}:${seconds}`;
-//     console.log(res.timer, res.workTimer);
-//     if (res.timer === res.workTimer * 60) {
-//       // console.log(res);
-//       // alert("stop");
-//       clearInterval(timerInterval);
-//       if (!timerBreakInterval) {
-//         timerBreakInterval = setInterval(breakTimer, 1000);
+// const startTimerBtn = document.getElementById("start-timer-btn");
+// startTimerBtn.addEventListener("click", () => {
+//   chrome.storage.local.get(["isRunning"], (res) => {
+//     chrome.storage.local.set(
+//       {
+//         isRunning: !res.isRunning,
+//       },
+//       () => {
+//         startTimerBtn.textContent = !res.isRunning
+//           ? "Pause Timer"
+//           : "Start Timer";
 //       }
-//       breakTimer();
-//     }
-//   });
-// }
-
-// function breakTimer() {
-//   console.log("Inside breakTimer function");
-//   chrome.storage.local.get(["timer", "breakTimer"], (res) => {
-//     const time = document.getElementById("time");
-//     const minutes = `${res.breakTimer - Math.ceil(res.timer / 60)}`.padStart(
-//       2,
-//       "0"
 //     );
-//     let seconds = "00";
-//     if (res.timer % 60 != 0) {
-//       seconds = `${60 - (res.timer % 60)}`.padStart(2, "0");
-//     }
-//     time.textContent = `${minutes}:${seconds}`;
-
-//     if (res.timer === res.breakTimer * 60) {
-//       clearInterval(timerBreakInterval);
-//       timerInterval = setInterval(workTimer, 1000);
-//       workTimer();
-//     }
 //   });
-// }
-
-// workTimer();
-// let timerInterval = setInterval(workTimer, 1000);
-// let timerBreakInterval = null;
-// // const timerBreakInterval = setInterval(breakTimer, 1000);
-
-const startTimerBtn = document.getElementById("start-timer-btn");
-startTimerBtn.addEventListener("click", () => {
-  chrome.storage.local.get(["isRunning"], (res) => {
-    chrome.storage.local.set(
-      {
-        isRunning: !res.isRunning,
-      },
-      () => {
-        startTimerBtn.textContent = !res.isRunning
-          ? "Pause Timer"
-          : "Start Timer";
-      }
-    );
-  });
-});
+// });
 
 // const resetTimerBtn = document.getElementById("reset-timer-btn");
 // resetTimerBtn.addEventListener("click", () => {
@@ -165,8 +94,8 @@ function renderTasks() {
 
 // Timer functions below
 
-let workChrono;
-let breakChrono;
+let workChronoID;
+let breakChronoID;
 
 let workMinutes;
 let breakMinutes;
@@ -174,51 +103,58 @@ let breakMinutes;
 let workSeconds = 0;
 let breakSeconds = 0;
 
+let initWorkChrono;
+let initBreakChrono;
+
 // Get the input given by user to work the worktimer. Async function.
 chrome.storage.local.get(["timer", "workTimer"]).then((res) => {
   workMinutes = res.workTimer;
+  initWorkChrono = res.workTimer;
   startWorkChrono();
 });
 
 chrome.storage.local.get(["timer", "breakTimer"]).then((res) => {
   breakMinutes = res.breakTimer;
-  startBreakChrono();
+  initBreakChrono = res.breakTimer;
 });
 
+function initChrono() {
+  console.log("inside initChrono !!!!");
+  startWorkChrono();
+}
+
 function startWorkChrono() {
-  if (!workChrono) {
-    workChrono = setInterval(updateWorkChrono, 1000);
-    console.log("workChrono start");
-  }
+  workChronoID = setInterval(updateWorkChrono, 1000);
+  console.log("workChrono start");
 }
 
 function startBreakChrono() {
-  if (!breakChrono) {
-    breakChrono = setInterval(updateBreakChrono, 1000);
-    console.log("breakChrono start");
-  }
+  breakChronoID = setInterval(updateBreakChrono, 1000);
+  console.log("breakChrono start");
 }
 
 function stopWorkChrono() {
-  clearInterval(workChrono);
-  workChrono = null;
+  clearInterval(workChronoID);
   updateWorkDisplay();
+  breakMinutes = initBreakChrono;
   console.log("stopWorkChrono stop");
+  startBreakChrono();
 }
 
 function stopBreakChrono() {
-  clearInterval(breakChrono);
-  breakChrono = null;
+  clearInterval(breakChronoID);
   updateBreakDisplay();
   console.log("stopWorkChrono stop");
+  // startWorkChrono();
+  workMinutes = initWorkChrono;
+  initChrono();
 }
 
 function updateWorkChrono() {
+  console.log("updateWorkChrono has started");
   if (workMinutes === 0 && workSeconds === 0) {
     stopWorkChrono();
-    // clearInterval(workChrono);
-    // workChrono = null;
-    console.log(workChrono);
+    clearInterval(workChronoID);
   } else if (workSeconds === 0) {
     workMinutes--;
     workSeconds = 59;
@@ -229,8 +165,10 @@ function updateWorkChrono() {
 }
 
 function updateBreakChrono() {
+  console.log("updateBreakChrono has started");
   if (breakMinutes === 0 && breakSeconds === 0) {
     stopBreakChrono();
+    clearInterval(breakChronoID);
   } else if (breakSeconds === 0) {
     breakMinutes--;
     breakSeconds = 59;
