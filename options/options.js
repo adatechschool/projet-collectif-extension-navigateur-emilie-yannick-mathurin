@@ -29,10 +29,14 @@ workSaveBtn.addEventListener("click", () => {
 
 const breakSaveBtn = document.getElementById("break-save-btn");
 breakSaveBtn.addEventListener("click", () => {
+  console.log(breakTimeOption.value);
   chrome.storage.local.set({
     timer: 0,
-    breakTimer: breakTimeOption.value,
+    breakTimer: parseInt(breakTimeOption.value),
     isRunning: false,
+  });
+  chrome.storage.local.get(["breakTimer"]).then((res) => {
+    console.log(res);
   });
 });
 

@@ -167,13 +167,22 @@ function renderTasks() {
 // Timer functions below
 
 let workChrono;
-let minutes;
+let breakChrono;
+
+let workMinutes;
+let breakMinutes;
+
 let seconds = 0;
 
 // Get the input given by user to work the worktimer. Async function.
 chrome.storage.local.get(["timer", "workTimer"]).then((res) => {
-  minutes = res.workTimer;
+  workMinutes = res.workTimer;
   startWorkChrono();
+});
+
+chrome.storage.local.get(["timer", "breakTimer"]).then((res) => {
+  breakMinutes = res.breakTimer - 1; // -1 because it always starts with an extra minute
+  startBreakChrono();
 });
 
 function startWorkChrono() {
@@ -183,29 +192,63 @@ function startWorkChrono() {
   }
 }
 
+function startBreakChrono() {
+  if (!breakChrono) {
+    breakChrono = setInterval(updateBreakChrono, 1000);
+    console.log("breakChrono start");
+  }
+}
+
 function stopWorkChrono() {
   clearInterval(workChrono);
   workChrono = null;
-  updateDisplay();
+  updateWorkDisplay();
+  console.log("stopWorkChrono stop");
+}
+
+function stopBreakChrono() {
+  clearInterval(breakChrono);
+  breakChrono = null;
+  updateBreakDisplay();
   console.log("stopWorkChrono stop");
 }
 
 function updateWorkChrono() {
-  if (minutes === 0 && seconds === 0) {
+  if (workMinutes === 0 && seconds === 0) {
     stopWorkChrono();
   } else if (seconds === 0) {
-    minutes--;
+    workMinutes--;
     seconds = 59;
   } else {
     seconds--;
   }
-  updateDisplay();
+  updateWorkDisplay();
 }
 
-function updateDisplay() {
-  let formattedMinutes = minutes.toString().padStart(2, "0");
+function updateBreakChrono() {
+  if (breakMinutes === 0 && seconds === 0) {
+    stopBreakChrono();
+  } else if (seconds === 0) {
+    breakMinutes--;
+    seconds = 59;
+  } else {
+    seconds--;
+  }
+  updateBreakDisplay();
+}
+
+function updateWorkDisplay() {
+  let formattedMinutes = workMinutes.toString().padStart(2, "0");
   let formattedSeconds = seconds.toString().padStart(2, "0");
   document.getElementById(
     "work-timer"
+  ).textContent = `${formattedMinutes}:${formattedSeconds}`;
+}
+
+function updateBreakDisplay() {
+  let formattedMinutes = breakMinutes.toString().padStart(2, "0");
+  let formattedSeconds = seconds.toString().padStart(2, "0");
+  document.getElementById(
+    "break-timer"
   ).textContent = `${formattedMinutes}:${formattedSeconds}`;
 }
