@@ -71,22 +71,21 @@ let tasks = [];
 // let timerBreakInterval = null;
 // // const timerBreakInterval = setInterval(breakTimer, 1000);
 
-//
-// const startTimerBtn = document.getElementById("start-timer-btn");
-// startTimerBtn.addEventListener("click", () => {
-//   chrome.storage.local.get(["isRunning"], (res) => {
-//     chrome.storage.local.set(
-//       {
-//         isRunning: !res.isRunning,
-//       },
-//       () => {
-//         startTimerBtn.textContent = !res.isRunning
-//           ? "Pause Timer"
-//           : "Start Timer";
-//       }
-//     );
-//   });
-// });
+const startTimerBtn = document.getElementById("start-timer-btn");
+startTimerBtn.addEventListener("click", () => {
+  chrome.storage.local.get(["isRunning"], (res) => {
+    chrome.storage.local.set(
+      {
+        isRunning: !res.isRunning,
+      },
+      () => {
+        startTimerBtn.textContent = !res.isRunning
+          ? "Pause Timer"
+          : "Start Timer";
+      }
+    );
+  });
+});
 
 // const resetTimerBtn = document.getElementById("reset-timer-btn");
 // resetTimerBtn.addEventListener("click", () => {
@@ -172,7 +171,8 @@ let breakChrono;
 let workMinutes;
 let breakMinutes;
 
-let seconds = 0;
+let workSeconds = 0;
+let breakSeconds = 0;
 
 // Get the input given by user to work the worktimer. Async function.
 chrome.storage.local.get(["timer", "workTimer"]).then((res) => {
@@ -181,7 +181,7 @@ chrome.storage.local.get(["timer", "workTimer"]).then((res) => {
 });
 
 chrome.storage.local.get(["timer", "breakTimer"]).then((res) => {
-  breakMinutes = res.breakTimer - 1; // -1 because it always starts with an extra minute
+  breakMinutes = res.breakTimer;
   startBreakChrono();
 });
 
@@ -214,32 +214,35 @@ function stopBreakChrono() {
 }
 
 function updateWorkChrono() {
-  if (workMinutes === 0 && seconds === 0) {
+  if (workMinutes === 0 && workSeconds === 0) {
     stopWorkChrono();
-  } else if (seconds === 0) {
+    // clearInterval(workChrono);
+    // workChrono = null;
+    console.log(workChrono);
+  } else if (workSeconds === 0) {
     workMinutes--;
-    seconds = 59;
+    workSeconds = 59;
   } else {
-    seconds--;
+    workSeconds--;
   }
   updateWorkDisplay();
 }
 
 function updateBreakChrono() {
-  if (breakMinutes === 0 && seconds === 0) {
+  if (breakMinutes === 0 && breakSeconds === 0) {
     stopBreakChrono();
-  } else if (seconds === 0) {
+  } else if (breakSeconds === 0) {
     breakMinutes--;
-    seconds = 59;
+    breakSeconds = 59;
   } else {
-    seconds--;
+    breakSeconds--;
   }
   updateBreakDisplay();
 }
 
 function updateWorkDisplay() {
   let formattedMinutes = workMinutes.toString().padStart(2, "0");
-  let formattedSeconds = seconds.toString().padStart(2, "0");
+  let formattedSeconds = workSeconds.toString().padStart(2, "0");
   document.getElementById(
     "work-timer"
   ).textContent = `${formattedMinutes}:${formattedSeconds}`;
@@ -247,7 +250,7 @@ function updateWorkDisplay() {
 
 function updateBreakDisplay() {
   let formattedMinutes = breakMinutes.toString().padStart(2, "0");
-  let formattedSeconds = seconds.toString().padStart(2, "0");
+  let formattedSeconds = breakSeconds.toString().padStart(2, "0");
   document.getElementById(
     "break-timer"
   ).textContent = `${formattedMinutes}:${formattedSeconds}`;
