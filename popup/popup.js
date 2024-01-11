@@ -170,6 +170,7 @@ let workChrono;
 let minutes;
 let seconds = 0;
 
+// Get the input given by user to work the worktimer. Async function.
 chrome.storage.local.get(["timer", "workTimer"]).then((res) => {
   minutes = res.workTimer;
   startWorkChrono();
