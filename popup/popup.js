@@ -1,34 +1,5 @@
 let tasks = [];
 
-// const startTimerBtn = document.getElementById("start-timer-btn");
-// startTimerBtn.addEventListener("click", () => {
-//   chrome.storage.local.get(["isRunning"], (res) => {
-//     chrome.storage.local.set(
-//       {
-//         isRunning: !res.isRunning,
-//       },
-//       () => {
-//         startTimerBtn.textContent = !res.isRunning
-//           ? "Pause Timer"
-//           : "Start Timer";
-//       }
-//     );
-//   });
-// });
-
-// const resetTimerBtn = document.getElementById("reset-timer-btn");
-// resetTimerBtn.addEventListener("click", () => {
-//   chrome.storage.local.set(
-//     {
-//       timer: 0,
-//       isRunning: false,
-//     },
-//     () => {
-//       startTimerBtn.textContent = "Start Timer";
-//     }
-//   );
-// });
-
 const addTaskBtn = document.getElementById("add-task-btn");
 addTaskBtn.addEventListener("click", () => addTask());
 
@@ -92,6 +63,79 @@ function renderTasks() {
   });
 }
 
+// Buttons
+
+const startTimerBtn = document.getElementById("start-timer-btn");
+startTimerBtn.addEventListener("click", () => {
+  console.log("Button clicked");
+
+  chrome.storage.local.get(["isRunning", "activeTimer"], (res) => {
+    console.log("Storage data retrieved:", res);
+
+    const isRunning = !res.isRunning;
+    console.log("Updating storage with isRunning:", isRunning);
+
+    chrome.storage.local.set({ isRunning }, () => {
+      startTimerBtn.textContent = isRunning ? "Pause Timer" : "Start Timer";
+      console.log("Button text updated:", startTimerBtn.textContent);
+
+      if (isRunning) {
+        // If the timer is starting, check which timer is active and start it
+        const activeTimer = res.activeTimer || "work";
+        console.log("Active Timer:", activeTimer);
+        console.log(
+          "Starting",
+          activeTimer === "work" ? "Work" : "Break",
+          "Chrono"
+        );
+
+        if (activeTimer === "work") {
+          startWorkChrono();
+        } else {
+          startBreakChrono();
+        }
+      } else {
+        // If the timer is paused, clear the interval
+        console.log("Timer paused. Clearing intervals");
+        clearInterval(workChronoID);
+        clearInterval(breakChronoID);
+      }
+    });
+  });
+});
+
+const resetTimerBtn = document.getElementById("reset-timer-btn");
+resetTimerBtn.addEventListener("click", () => {
+  chrome.storage.local.set(
+    {
+      isRunning: false,
+      activeTimer: "work", // Set activeTimer to "work" on reset
+    },
+    () => {
+      console.log("Reset button clicked. Storage updated:", {
+        isRunning: false,
+        activeTimer: "work",
+      });
+
+      startTimerBtn.textContent = "Start Timer";
+    }
+  );
+  resetTimer(); // Call the resetTimer function to reset the timer values
+});
+
+function resetTimer() {
+  clearInterval(workChronoID);
+  clearInterval(breakChronoID);
+
+  workMinutes = initWorkChrono;
+  breakMinutes = initBreakChrono;
+  workSeconds = 0;
+  breakSeconds = 0;
+
+  updateWorkDisplay();
+  updateBreakDisplay();
+}
+
 // Timer functions below
 
 let workChronoID;
@@ -110,7 +154,7 @@ let initBreakChrono;
 chrome.storage.local.get(["timer", "workTimer"]).then((res) => {
   workMinutes = res.workTimer;
   initWorkChrono = res.workTimer;
-  startWorkChrono();
+  // startWorkChrono();
 });
 
 chrome.storage.local.get(["timer", "breakTimer"]).then((res) => {
@@ -124,11 +168,13 @@ function initChrono() {
 }
 
 function startWorkChrono() {
+  chrome.storage.local.set({ activeTimer: "work" });
   workChronoID = setInterval(updateWorkChrono, 1000);
   console.log("workChrono start");
 }
 
 function startBreakChrono() {
+  chrome.storage.local.set({ activeTimer: "break" });
   breakChronoID = setInterval(updateBreakChrono, 1000);
   console.log("breakChrono start");
 }
