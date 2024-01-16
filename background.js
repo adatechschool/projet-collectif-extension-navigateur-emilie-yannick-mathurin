@@ -1,34 +1,172 @@
-// chrome.alarms.create("pomodoroTimer", {
-//     periodInMinutes: 1 / 60,
-//   });
+// // background.js
 
-//   chrome.alarms.onAlarm.addListener((alarm) => {
-//     if (alarm.name === "pomodoroTimer") {
-//       chrome.storage.local.get(["timer", "isRunning", "timeOption"], (res) => {
-//         if (res.isRunning) {
-//           let timer = res.timer + 1;
-//           let isRunning = true;
-//           if (timer === 60 * res.timeOption) {
-//             this.registration.showNotification("Pomodoro Timer", {
-//               body: `${res.timeOption} minutes has passed`,
-//               icon: "icon.png",
+// let timerInterval;
+
+// function startTimer() {
+//   console.log("Timer started");
+//   timerInterval = setInterval(updateTimer, 1000);
+// }
+
+// function updateTimer() {
+//   chrome.storage.local.get(["activeTimer", "isRunning"], function (res) {
+//     const activeTimer = res.activeTimer || "work";
+//     const isRunning = res.isRunning;
+
+//     if (isRunning) {
+//       chrome.storage.local.get(
+//         [`${activeTimer}Progress`],
+//         function (progressRes) {
+//           const timerData = progressRes[`${activeTimer}Progress`];
+
+//           if (timerData) {
+//             let minutes = timerData.minutes;
+//             let seconds = timerData.seconds;
+
+//             console.log(`BACKGROUND ${activeTimer} timer progress:`, {
+//               minutes,
+//               seconds,
 //             });
-//             timer = 0;
-//             isRunning = false;
+
+//             if (minutes === 0 && seconds === 0) {
+//               console.log(`Switching to the next timer`);
+//               switchTimer(activeTimer);
+//             } else {
+//               // Decrement seconds and adjust minutes if necessary
+//               if (seconds === 0) {
+//                 minutes--;
+//                 seconds = 59;
+//               } else {
+//                 seconds--;
+//               }
+
+//               chrome.storage.local.set({
+//                 [`${activeTimer}Progress`]: { minutes, seconds },
+//               });
+//             }
 //           }
-//           chrome.storage.local.set({
-//             timer,
-//             isRunning,
-//           });
 //         }
-//       });
+//       );
 //     }
 //   });
+// }
 
-//   chrome.storage.local.get(["timer", "isRunning", "timeOption"], (res) => {
+// function switchTimer(currentTimer) {
+//   console.log(`Switching from ${currentTimer} timer to the next timer`);
+//   chrome.storage.local.get(["workTimer", "breakTimer"], function (res) {
+//     const nextTimer = currentTimer === "work" ? "break" : "work";
+//     const nextTimerData = res[`${nextTimer}Timer`];
+
 //     chrome.storage.local.set({
-//       timer: "timer" in res ? res.timer : 0,
-//       timeOption: "timeOption" in res ? res.timeOption : 25,
-//       isRunning: "isRunning" in res ? res.isRunning : false,
+//       activeTimer: nextTimer,
+//       [`${nextTimer}Progress`]: nextTimerData,
+//     });
+
+//     chrome.storage.local.set({
+//       [`${currentTimer}Progress`]: { minutes: 0, seconds: 0 },
 //     });
 //   });
+// }
+
+// startTimer();
+
+// chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+//   if (request.command === "start") {
+//     startTimer();
+//   }
+// });
+
+// // No need to stop the timer, it will run indefinitely
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+// background.js
+
+let timerInterval;
+
+function startTimer() {
+  console.log("Timer started");
+  timerInterval = setInterval(updateTimer, 1000);
+}
+
+function updateTimer() {
+  chrome.storage.local.get(["activeTimer", "isRunning"], function (res) {
+    const activeTimer = res.activeTimer || "work";
+    const isRunning = res.isRunning;
+
+    if (isRunning) {
+      chrome.storage.local.get(
+        [`${activeTimer}Progress`],
+        function (progressRes) {
+          const timerData = progressRes[`${activeTimer}Progress`];
+
+          if (timerData) {
+            let minutes = timerData.minutes;
+            let seconds = timerData.seconds;
+
+            // console.log(`BACKGROUND ${activeTimer} timer progress:`, {
+            //   minutes,
+            //   seconds,
+            // });
+
+            if (minutes === 0 && seconds === 0) {
+              console.log(`Switching to the next timer`);
+              switchTimer(activeTimer);
+            } else {
+              // Decrement seconds and adjust minutes if necessary
+              if (seconds === 0) {
+                minutes--;
+                seconds = 59;
+              } else {
+                seconds--;
+              }
+
+              chrome.storage.local.set({
+                [`${activeTimer}Progress`]: { minutes, seconds },
+              });
+              console.log("BACKGROUND Timer progress", {
+                minutes,
+                seconds,
+              });
+            }
+          }
+        }
+      );
+    }
+  });
+}
+
+function switchTimer(currentTimer) {
+  console.log(`Switching from ${currentTimer} timer to the next timer`);
+  chrome.storage.local.get(["workTimer", "breakTimer"], function (res) {
+    const nextTimer = currentTimer === "work" ? "break" : "work";
+    const nextTimerData = res[`${nextTimer}Timer`];
+
+    chrome.storage.local.set({
+      activeTimer: nextTimer,
+      [`${nextTimer}Progress`]: nextTimerData,
+    });
+
+    chrome.storage.local.set({
+      [`${currentTimer}Progress`]: { minutes: 0, seconds: 0 },
+    });
+  });
+}
+
+startTimer();
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  if (request.command === "start") {
+    startTimer();
+  }
+});
